@@ -128,12 +128,6 @@ restic restore <snapshot-id> --target /restore --include /etc/nginx/nginx.conf
 
 ---
 
-## License
-
-MIT (or update as desired)
-
----
-
 ## Contributions
 
 PRs welcome.
