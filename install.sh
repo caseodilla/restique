@@ -129,6 +129,7 @@ fi
 echo "Fetching backup script..."
 curl -sSL "$BASE_URL/backup.sh" -o /usr/local/bin/restic-backup.sh
 chmod 750 /usr/local/bin/restic-backup.sh
+ln -sf /usr/local/bin/restic-backup.sh "$CONFIG_DIR/restic-backup.sh"
 
 echo "Fetching systemd service and timer..."
 curl -sSL "$BASE_URL/systemd/restic-backup.service" -o "$SERVICE_FILE"

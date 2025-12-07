@@ -154,6 +154,46 @@ run_pre_hooks() {
   done
 }
 
+human_duration() {
+  local ms="$1"
+
+  # Under 1 second → millisecond output
+  if (( ms < 1000 )); then
+    echo "${ms}ms"
+    return
+  fi
+
+  # Convert milliseconds → seconds (floating)
+  local seconds
+  seconds=$(awk "BEGIN { printf \"%.1f\", $ms/1000 }")
+
+  # Under 60 seconds → seconds output
+  awk -v sec="$seconds" 'BEGIN {
+    if (sec < 60) {
+      printf "%.1fs", sec
+      exit
+    }
+  }'
+
+  # Convert to minutes
+  local minutes
+  minutes=$(awk "BEGIN { printf \"%.1f\", $seconds/60 }")
+
+  # Under 60 minutes → minutes output
+  awk -v min="$minutes" 'BEGIN {
+    if (min < 60) {
+      printf "%.1fm", min
+      exit
+    }
+  }'
+
+  # Hours (fallback)
+  local hours
+  hours=$(awk "BEGIN { printf \"%.1f\", $minutes/60 }")
+  printf "%.1fh" "$hours"
+}
+
+
 start_ts_ms="$(now_ms)"
 start_ts_epoch="$(date +%s)"
 
@@ -219,6 +259,7 @@ end_ts_ms="$(now_ms)"
 end_ts_epoch="$(date +%s)"
 
 elapsed_ms=$((end_ts_ms - start_ts_ms))
+elapsed_human="$(human_duration "$elapsed_ms")"
 
 summary_tail="$(tail -n 10 "$BACKUP_LOG" || true)"
 rm -f "$BACKUP_LOG"
@@ -227,21 +268,21 @@ case "$status" in
   success)
     priority="1"
     ta="white_check_mark"
-    msg="OK: restic backup on $HOSTNAME finished in ${elapsed_ms}ms to $RESTIC_REPOSITORY"
+    msg="OK: restic backup on $HOSTNAME finished in ${elapsed_human} to $RESTIC_REPOSITORY"
     short_motd=""
     last_success_epoch="$end_ts_epoch"
     ;;
   warning)
     priority="3"
     ta="warning"
-    msg="Warning: restic backup on $HOSTNAME completed with warnings in ${elapsed_ms}ms. Last lines:\n${summary_tail}"
+    msg="Warning: restic backup on $HOSTNAME completed with warnings in ${elapsed_human}ms. Last lines:\n${summary_tail}"
     short_motd="⚠ Restic backup on this server completed with warnings. See logs."
     last_success_epoch="$end_ts_epoch"
     ;;
   failure)
     priority="5"
     ta="x"
-    msg="FAILURE: restic backup on $HOSTNAME failed after ${elapsed_ms}ms. Last lines:\n${summary_tail}"
+    msg="FAILURE: restic backup on $HOSTNAME failed after ${elapsed_human}ms. Last lines:\n${summary_tail}"
     short_motd="❌ Restic backup on this server FAILED. See logs."
     last_success_epoch=""
     ;;
