@@ -56,6 +56,7 @@ else
     echo "Creating new config at $CONFIG_FILE"
   fi
 
+  read -rp "Restic repository name (will be created in Backblaze B2): " RESTIC_REPO
   read -rp "Backblaze B2 Account ID: " B2_ACCOUNT_ID
   read -rp "Backblaze B2 Application Key: " B2_ACCOUNT_KEY
   read -srp "Restic repository password: " RESTIC_PASSWORD
@@ -74,7 +75,7 @@ B2_ACCOUNT_ID="${B2_ACCOUNT_ID}"
 B2_ACCOUNT_KEY="${B2_ACCOUNT_KEY}"
 
 # Restic repository & password
-RESTIC_REPOSITORY="b2:lm988-backups:/restic/\$HOSTNAME"
+RESTIC_REPOSITORY="b2:${RESTIC_REPO}:/restic/\$HOSTNAME"
 RESTIC_PASSWORD="${RESTIC_PASSWORD}"
 
 # Backup scope
@@ -133,6 +134,10 @@ echo "Fetching systemd service and timer..."
 curl -sSL "$BASE_URL/systemd/restic-backup.service" -o "$SERVICE_FILE"
 curl -sSL "$BASE_URL/systemd/restic-backup.timer" -o "$TIMER_FILE"
 
+echo "Fetching timer management helper script..."
+curl -sSL "$BASE_URL/systemd/manage-timer.sh" -o "$CONFIG_DIR/manage-timer.sh"
+chmod 750 "$CONFIG_DIR/manage-timer.sh"
+
 echo "Fetching MOTD script..."
 curl -sSL "$BASE_URL/motd/90-restic-backup-status" -o "$MOTD_SCRIPT"
 chmod 755 "$MOTD_SCRIPT"
@@ -140,6 +145,10 @@ chmod 755 "$MOTD_SCRIPT"
 echo "Fetching example MySQL pre-backup script..."
 curl -sSL "$BASE_URL/examples/10-mysql-dump-example.sh" -o "$PRE_HOOKS_DIR/10-mysql-dump-example.sh"
 chmod 640 "$PRE_HOOKS_DIR/10-mysql-dump-example.sh"
+
+echo "Fetching init helper script..."
+curl -sSL "$BASE_URL/init.sh" -o "$CONFIG_DIR/init.sh"
+chmod 750 "$CONFIG_DIR/init.sh"
 
 # ------------------
 # README IN /etc/restic-backup
@@ -181,13 +190,15 @@ EOF
 echo "Reloading systemd units..."
 systemctl daemon-reload
 
-echo "Enabling and starting restic-backup.timer..."
-systemctl enable --now restic-backup.timer
-
 echo
 echo "Installation complete."
-echo "Config: $CONFIG_FILE"
-echo "You can trigger a manual backup with:"
-echo "  systemctl start restic-backup.service"
+echo
+echo "Next steps:"
+echo "  1) Review and customize the config file if needed: $CONFIG_FILE"
+echo "  2) Initialize the restic repository and enable the timer by running:"
+echo "       sudo /etc/restic-backup/init.sh"
+echo
+echo "After that, you can run a backup manually with:"
+echo "  sudo systemctl start restic-backup.service"
 echo "Check logs with:"
 echo "  journalctl -u restic-backup.service"

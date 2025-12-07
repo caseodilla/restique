@@ -19,7 +19,7 @@ This repo provides the scripts that the installer fetches and deploys automatica
 
 Run on any Ubuntu server:
 
-curl -sSL https://raw.githubusercontent.com/YOUR_GITHUB_USER/YOUR_REPO_NAME/main/install.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/caseodilla/restique/main/install.sh | sudo bash
 
 The installer will:
 
@@ -35,6 +35,21 @@ The installer will:
 - Install example MySQL pre-backup hook
 - Generate /etc/restic-backup/README.md with version info
 - Enable and start the timer
+
+---
+
+## First-time initialization
+
+After installation, before the first backup, run:
+
+  sudo /etc/restic-backup/init.sh
+
+This will:
+
+- Verify access to the Backblaze B2 repository.
+- Initialize the restic repository if needed.
+- Enable and start the restic-backup.timer systemd timer.
+
 
 ---
 
