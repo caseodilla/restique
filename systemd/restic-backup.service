@@ -1,0 +1,18 @@
+[Unit]
+Description=Restic backup to Backblaze B2
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/restic-backup.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+
+# Run as root (needed for /root, /etc, etc.)
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

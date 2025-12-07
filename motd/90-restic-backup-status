@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+STATE_DIR="/var/lib/restic-backup"
+MOTD_WARNING_FILE="$STATE_DIR/motd-warning"
+
+if [[ -f "$MOTD_WARNING_FILE" ]]; then
+  cat "$MOTD_WARNING_FILE"
+  echo
+fi
