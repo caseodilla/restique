@@ -53,6 +53,16 @@ This will:
 
 ---
 
+## Using restic manually
+
+To open a restic-ready root shell:
+
+  sudo /etc/restic-backup/restic-shell.sh
+
+This sources the connection variables automatically.
+
+---
+
 ## Repo Contents
 
 install.sh                    (installer)

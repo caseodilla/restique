@@ -4,7 +4,7 @@ set -euo pipefail
 VERSION="1.0.0"
 
 # UPDATE THESE FOR YOUR REPO
-BASE_URL="${BASE_URL:-https://raw.githubusercontent.com/caseodilla/restique/main}"
+BASE_URL="${BASE_URL:-https://raw.githubusercontent.com/<user>/<project>/main}"
 
 CONFIG_DIR="/etc/restic-backup"
 CONFIG_FILE="$CONFIG_DIR/config"
@@ -110,6 +110,7 @@ if [[ ! -f "$EXCLUDES_FILE" ]]; then
 /run
 /tmp
 /var/tmp
+.vscode-server
 
 # Restic cache (safe to exclude)
 /root/.cache/restic
@@ -150,6 +151,10 @@ chmod 640 "$PRE_HOOKS_DIR/10-mysql-dump-example.sh"
 echo "Fetching init helper script..."
 curl -sSL "$BASE_URL/init.sh" -o "$CONFIG_DIR/init.sh"
 chmod 750 "$CONFIG_DIR/init.sh"
+
+echo "Fetching restic shell helper script..."
+curl -sSL "$BASE_URL/restic-shell.sh" -o "$CONFIG_DIR/restic-shell.sh"
+chmod 750 "$CONFIG_DIR/restic-shell.sh"
 
 # ------------------
 # README IN /etc/restic-backup
