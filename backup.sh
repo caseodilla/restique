@@ -155,44 +155,30 @@ run_pre_hooks() {
 }
 
 human_duration() {
-  local ms="$1"
+  awk -v ms="$1" '
+    BEGIN {
+      if (ms < 1000) {
+        printf "%dms\n", ms
+        exit
+      }
 
-  # Under 1 second → millisecond output
-  if (( ms < 1000 )); then
-    echo "${ms}ms"
-    return
-  fi
+      s = ms / 1000.0
+      if (s < 60) {
+        printf "%.1fs\n", s
+        exit
+      }
 
-  # Convert milliseconds → seconds (floating)
-  local seconds
-  seconds=$(awk "BEGIN { printf \"%.1f\", $ms/1000 }")
+      m = s / 60.0
+      if (m < 60) {
+        printf "%.1fm\n", m
+        exit
+      }
 
-  # Under 60 seconds → seconds output
-  awk -v sec="$seconds" 'BEGIN {
-    if (sec < 60) {
-      printf "%.1fs", sec
-      exit
+      h = m / 60.0
+      printf "%.1fh\n", h
     }
-  }'
-
-  # Convert to minutes
-  local minutes
-  minutes=$(awk "BEGIN { printf \"%.1f\", $seconds/60 }")
-
-  # Under 60 minutes → minutes output
-  awk -v min="$minutes" 'BEGIN {
-    if (min < 60) {
-      printf "%.1fm", min
-      exit
-    }
-  }'
-
-  # Hours (fallback)
-  local hours
-  hours=$(awk "BEGIN { printf \"%.1f\", $minutes/60 }")
-  printf "%.1fh" "$hours"
+  '
 }
-
 
 start_ts_ms="$(now_ms)"
 start_ts_epoch="$(date +%s)"
@@ -275,14 +261,14 @@ case "$status" in
   warning)
     priority="3"
     ta="warning"
-    msg="Warning: restic backup on $HOSTNAME completed with warnings in ${elapsed_human}ms. Last lines:\n${summary_tail}"
+    msg="Warning: restic backup on $HOSTNAME completed with warnings in ${elapsed_human}. Last lines:\n${summary_tail}"
     short_motd="⚠ Restic backup on this server completed with warnings. See logs."
     last_success_epoch="$end_ts_epoch"
     ;;
   failure)
     priority="5"
     ta="x"
-    msg="FAILURE: restic backup on $HOSTNAME failed after ${elapsed_human}ms. Last lines:\n${summary_tail}"
+    msg="FAILURE: restic backup on $HOSTNAME failed after ${elapsed_human}. Last lines:\n${summary_tail}"
     short_motd="❌ Restic backup on this server FAILED. See logs."
     last_success_epoch=""
     ;;
